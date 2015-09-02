@@ -1,0 +1,81 @@
+.\" Manpage for moe.
+.\" Contact <mvdw at airmail dot cc> for anything regarding this project.
+.DD September 1 2015
+.OS Arch linux 2015.08.1
+.TH man 1 "September 1 2015" "0.0.2" "Moe manual"
+.SH NAME
+.BI Moe \- advanced content uploading tool.
+.SH SYNOPSIS
+.SY Moe
+.OP \-u file
+.OP \-c moerc
+.YS
+.SH DESCRIPTION
+Moe is an tool created to upload files quickly. It was originally created to
+upload screenshots quickly to pomf but that time has past (un)fortunately. It now
+uploads to any site that takes an formatted post request.
+.IB options
+section to read more about what moe has to offer.
+.SH OPTIONS
+.TP 
+.BI \-b,\ \-\-browser 
+Wheter to automatically open in the browser. For this to work you need to export
+the BROWSER variable. If you don't know what this means plenty of search
+engines are always at your service.
+.TP
+.BI \-c,\ \-\-rc  " \fR[\fPARGUMENT\fR]\fP" 
+Specify the location of the moerc file.
+.TP
+.BI \-\-dependency\-check
+Check the system for the required dependencies. It will show you the
+name and the location of the dependency when found and will leave a "?"
+for a missing dependency.
+.TP
+.BI \-f,\ \-\-fullscreen
+Take an fullscreen screenshot, this does not screenshot multiple
+monitors.
+.TP
+.TP
+.BI \-h,\ \-\-help
+You're looking at it!
+.TP
+.BI \-\-history\-file " \fR[\fPARGUMENT\fR]\fP" 
+The history file contains an history of all your uploads. You can 
+format the output of the history file through the --history-format 
+option. 
+.TP
+.BI \-\-history\-format " \fR[\fPARGUMENT\fR]\fP" 
+How the output should be written to the file. Omitting this flag will
+use the default specified.
+.EX
+
+    %t  The filename before uploading (PID or -u argument)
+    %d  The current timestamp
+    %f  The url of the uploaded file
+    %h  The filehash (not always available)
+    %s  The size in bytes (not always available)
+    %%  An % symbol
+.EE
+.TP
+.BI \-\-host " \fR[\fPARGUMENT\fR]\fP" 
+What host to use, the host needs to be specified in the source or in the rc
+file. You can use control characters specially to get the host.
+.TP
+.BI \-s,\ \-\-selection
+Select an area to screenshot and upload.
+
+.TP
+.BI \-u,\ \-\-upload " \fR[\fPARGUMENT\fR]\fP" 
+Upload an file to the selected host.
+.SH SEE ALSO
+.BR whereis (1),
+.BR xclip (1),
+.BR bc (1),
+.SH BUGS
+None currently, let me know though!
+.SH AUTHOR
+.MT mvdw@airmail.cc
+Mirko van der Waal
+.ME
+.UR http://keybase.io/mvdw
+.UE

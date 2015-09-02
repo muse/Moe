@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# A sample file showing the available options for your moerc file.
+# This file will overwrite the existing variables noted in the script. 
+# If you do not with to use an option you can comment it out. Every non
+# commented option will overwrite the default.
+#
+# This script uses bash notation for variables assignment. If you are not
+# familiar with this and would like to know more about it; there are various
+# sites that will be able to help you. The most notable thing is the lack of
+# spaces between the variable, operator and value. 
+#
+# Incorrect:    var = 0
+# Correct:      var=0
+#
+# Something notable to this script/rc is that all variables are noted in
+# uppercase. If you find any of the variables not working validate they're all
+# in uppercase.
+
+# The format of the history entry. You can view the available options on the
+# manpage or through the -h, --help option.
+# HISTORY_FORMAT="%d->%f"
+
+# Location of the history file.
+# HISTORY_FILE=$HOME/.config/moe/moe.list
+
+# Where moe keeps his files.
+# CONFIG_DIRECTORY=$HOME/.config/moe
+
+# Where you save local coppies of your files.
+# IMAGE_DIRECTORY=$HOME/Pictures/moe
+
+# Where moe tracks the logs.
+# LOG_FILE=$HOME/.config/moe/moe.log
+
+# Where the moerc file is. Moe will look in $HOME/.config/moe/moerc by default.
+# RESOURCES=$HOME/.config/moe/moerc
+
+# The default hosting pair.
+# HOST_DEFAULT=2,3
+
+# The available hosts. 
+# NOTE: You can use two different operators here, you can overwrite the existing
+# host arrays by using the '=' operator. If you wish to append to the existing
+# hosts use '+='. If you don't know how bash arrays work I recommend quickly
+# looking it up, they're use a space delimiter which can be confusing sometimes.
+# HOST_ARRAY=
+
+# If moe should write to the history file.
+# WRITE_TO_HISTORY=
+
+# If moe should copy the file uploaded to the IMAGE_DIRECTORY path.
+# WRITE_TO_LOCAL=
+
+# If moe should write to the log file.
+# WRITE_TO_LOG=

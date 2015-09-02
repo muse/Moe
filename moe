@@ -1,0 +1,189 @@
+#!/bin/bash
+# Maintainer: Mirko van der Waal
+# Contact: <mvdw at airmail dot cc>
+# 
+# Moe is an very easy file uploader for the command line. It was originally
+# created for pomf which has been taken down by the owner. 
+# (Goodnight sweet prince) 
+
+DEPENDENCY_LIST=(bc man xclip giblib libnotify)
+VERSION=0.0.2
+SCRIPT=moe
+
+CONFIG_DIRECTORY=$HOME/.config/moe
+IMAGE_DIRECTORY=$HOME/Pictures/moe
+
+LOG_FILE=$HOME/.config/moe/moe.log
+RESOURCE=$HOME/.config/moe/moerc
+
+HISTORY_FILE=$HOME/.config/moe/moe.list
+HISTORY_FORMAT="%d :: %f"
+
+WRITE_TO_HISTORY=true
+WRITE_TO_LOCAL=true
+WRITE_TO_LOG=true
+
+HOST_DEFAULT=2,3
+HOST_ARRAY=(
+    https://maxfile.ro/static https://d.maxfile.ro
+    https://mixtape.moe       https://my.mixtape.moe
+    https://bucket.pw         https://dl.bucket.pw
+    http://pomf.cat           http://a.pomf.cat
+    http://1339.cf            http://a.1339.cf
+    http://xpo.pw             http://u.xpo.pw
+)
+
+DEPENDENCY() {
+    LOG START "Dependency validation."
+    for DEPENDENCY in ${DEPENDENCY_LIST[@]}; do
+        if [[ $(whereis $DEPENDENCY | wc -w) -gt 1 ]]; then
+            echo "$DEPENDENCY -> $(whereis $DEPENDENCY | cut -d\  -f2)"
+        else
+            LOG WARNING "Missing $DEPENDENCY could cause trouble to the script."
+            echo "$DEPENDENCY -> ?"
+        fi
+    done
+    LOG FINISH "Dependency.validation."
+    exit 0
+}
+
+RESOURCES() {
+    [[ ${#@} -gt 1 ]] && return
+    LOG START "Loading resources."
+    [[ ${#@} -eq 0 && -e $RESOURCE ]] && . $RESOURCE
+    [[ ${#@} -eq 1 && -e $1 ]] && . $1 
+    LOG FINISH "Loading resources."
+}
+
+HISTORY() {
+    [[ ${#HISTORY_FORMAT} -le 0 ]] && return
+    LOG START "Creating history entry."
+    echo -e $HISTORY_FORMAT \
+        | sed "s/%d/$(date "+%b_%H:%M:%S" | sed 's/_/ /g')/g" \
+        | sed "s/%s/$(JSON $RESPONSE size)/g" \
+        | sed "s/%h/$(JSON $RESPONSE hash)/g" \
+        | sed "s/%f/$(JSON $RESPONSE url)/g" \
+        | sed "s/%t/'${RAW%%.*}'/g" \
+        | sed "s/%%/%/g" 
+    >> $HISTORY_FILE
+    LOG FINISH "Creating history entry."
+}
+
+JSON() {
+    [[ ${#@} -ne 2 || ${#1} -le 0 || ${#2} -le 0 ]] && return
+    LOG START "Retrieving JSON."
+    echo $1 | sed 's/"//g;s/https:/https_/g' | grep -Po "$2:[:\/\\\.\w\d]+[\,\}]" | \
+              sed 's/,//g;s/\}//g' | cut -d: -f2 | sed 's/_/:/g' 
+    LOG FINISH "Retrieving JSON."
+}
+
+HTTP() {
+    LOG START "Sending HTTP request."
+    FILE=$1
+    RAW=$(echo $1 | sed 's/\/tmp\///g')
+    local RESPONSE=$(curl -sf -F files[]="@$FILE" ${HOST_ARRAY[$(echo $HOST_DEFAULT | cut -d, -f1)]}/upload.php)
+    if [[ $(JSON $RESPONSE success) == "true" ]]; then
+        local NAME=$(JSON $RESPONSE name)
+        local UPLOADED=$(JSON $RESPONSE url | sed 's/\\//g')
+
+        if [[ -z $(echo $UPLOADED | grep -Po "http[s:]" | sed 's/://g') ]]; then
+            UPLOADED="${HOST_ARRAY[$(echo $HOST_DEFAULT | cut -d, -f2)]}/$UPLOADED"
+            LOG WARNING "Generated the URL due to lack of server response."
+        fi
+
+        [[ $WRITE_TO_HISTORY = true ]] && HISTORY
+        [[ $WRITE_TO_LOCAL = true ]] && cp $FILE $IMAGE_DIRECTORY
+
+        # Apply to the clipboard. 
+        echo -n $UPLOADED | xclip -selection primary     &>/dev/null
+        echo -n $UPLOADED | xclip -selection clipboard   &>/dev/null
+        
+        notify-send "Succesfully uploaded: $UPLOADED"
+        echo "Succesfully uploaded: $UPLOADED"
+    else
+        LOG ERROR "Invalid response or host timeout"
+        exit
+    fi
+    LOG FINISH "Sending HTTP request"
+}
+
+HOST() {
+    LOG START "Validating host"
+    local N=0
+    local C=0
+    if [[ $(curl -Is ${HOST_ARRAY[$(echo $HOST_DEFAULT | cut -d, -f1)]} \
+            | grep HTTP | wc -l) -eq 1 &&
+            $(curl -Is ${HOST_ARRAY[$(echo $HOST_DEFAULT | cut -d, -f2)]} \
+            | grep HTTP | wc -l) -eq 1 && ${#@} -eq 0 ]]; then
+        return
+    fi
+    for H in ${HOST_ARRAY[@]}; do
+        if [[ $(echo $N % 2 | bc) == 0 ]]; then
+            if [[ $(echo $H | sed 's/http:\/\///g;s/\(.*\)\..*/\1/') =~ "$1" || 
+                  ${#@} -eq 0 ]]; then
+                C=$N
+                while :; do
+                    if [[ $(curl -Is ${HOST_ARRAY[$C]} \
+                            | grep HTTP | wc -l) -eq 1 &&
+                            $(curl -Is ${HOST_ARRAY[$(echo $C + 1 | bc)]} \
+                            | grep HTTP | wc -l) -eq 1 ]]; then
+                        HOST_DEFAULT="$C,$(echo $C + 1 | bc)"               
+                        break
+                    elif [[ $C -ge ${#HOST_ARRAY} ]]; then
+                        LOG ERROR "Connection timeout (hosts are down)."
+                        exit 0
+                    fi
+                    (( C++ ))
+                done
+            fi
+        fi
+        [[ ${#@} -eq 0 ]] && break
+        (( N++ ))
+    done
+    LOG FINISH "Validating host"
+}
+
+LOG() {
+    [[ ${#@} -ne 2 || ${#1} -le 0 || ${#2} -le 0 || $WRITE_TO_LOG = false ]] && return
+    echo -e "$(date "+%b_%H:%M:%S" | sed 's/_/ /g') :: $1 :: $2" >> $LOG_FILE
+}
+
+RESOURCES
+
+SHORT="hfu:sc:"
+LONG="help,upload:,selection,fullscreen,construct,host:,history-file:,history-format:,dependency-check,config:"
+OPTIONS=$(getopt -o $(echo $SHORT) \
+                 -l $(echo $LONG) \
+                 -n "$0" \
+                 -- "$@")
+
+if [ $? != 0 ]; then exit 1 ; fi
+eval set -- "$OPTIONS"
+
+while true; do
+    case "$1" in
+        --dependency-check)
+            DEPENDENCY && break ;;
+        --host)
+            [[ ${#2} -le 0 ]] && HOST && shift || HOST $2 && shift 2 ;;
+        --history-format)
+            [[ ${#2} -le 0 ]] && : || HISTORY_FORMAT=$2 && shift 2 ;;
+        --history-file)
+            [[ ${#2} -le 0 ]] && : || HISTORY_FILE=$2 && shift 2 ;;
+        -c|--config)
+            [[ ${#2} -le 0 ]] && : || RESOURCES $2 && shift 2 ;;
+        -u|--upload)
+            [[ ${#2} -le 0 ]] && break || HTTP $2 && shift 2 ;;
+        -s|--selection)
+            HTTP $(NAME=$(echo -n $$.png); scrot -s /tmp/$NAME; echo -n $NAME)
+            shift ;;
+        -f|--fullscreen)
+            HTTP $(NAME=$(echo -n $$.png); scrot /tmp/$NAME; echo -n $NAME)
+            shift ;;
+        -h|--help)
+            man $SCRIPT && break || break ;;
+        --) shift 
+            break ;;
+        * ) break ;;
+    esac
+done
