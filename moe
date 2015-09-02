@@ -20,6 +20,7 @@ HISTORY_FILE=$HOME/.config/moe/moe.list
 HISTORY_FORMAT="%d :: %f"
 
 WRITE_TO_HISTORY=true
+WRITE_TO_BROWSER=true
 WRITE_TO_LOCAL=true
 WRITE_TO_LOG=true
 
@@ -92,6 +93,8 @@ HTTP() {
         fi
 
         [[ $WRITE_TO_HISTORY = true ]] && HISTORY
+        [[ $WRITE_TO_BROWSER = true && \
+           $(echo $UPLOADED | grep -Po "\.png|\.jpg" | wc -c) -gt 0 ]] && $BROWSER $UPLOADED
         [[ $WRITE_TO_LOCAL = true ]] && cp $FILE $IMAGE_DIRECTORY
 
         # Apply to the clipboard. 
@@ -175,13 +178,15 @@ while true; do
         -u|--upload)
             [[ ${#2} -le 0 ]] && break || HTTP $2 && shift 2 ;;
         -s|--selection)
-            HTTP $(NAME=$(echo -n $$.png); scrot -s /tmp/$NAME; echo -n $NAME)
+            HTTP /tmp/$(NAME=$(echo -n $$.png); scrot -s /tmp/$NAME; echo -n $NAME)
             shift ;;
         -f|--fullscreen)
-            HTTP $(NAME=$(echo -n $$.png); scrot /tmp/$NAME; echo -n $NAME)
+            HTTP /tmp/$(NAME=$(echo -n $$.png); scrot /tmp/$NAME; echo -n $NAME)
             shift ;;
         -h|--help)
             man $SCRIPT && break || break ;;
+        -b|--browser)
+            WRITE_TO_BROWSER=true && shift ;;
         --) shift 
             break ;;
         * ) break ;;

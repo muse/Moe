@@ -53,3 +53,6 @@
 
 # If moe should write to the log file.
 # WRITE_TO_LOG=
+
+# If moe should open the file in the browser.
+# WRITE_TO_BROWSER=

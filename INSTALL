@@ -10,7 +10,5 @@ fi
 if [[ $1 == "update" ]]; then
     sudo cp ./moe /usr/local/bin/moe
     sudo cp ./moe.1.gz /usr/share/man/man1/moe
-    mkdir $HOME/.config/moe
-    mkdir $HOME/Pictures/moe
 fi
  
