@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
    
 if [[ $1 == "clone" ]]; then
-    [[ ! -e /usr/local/bin/moe ]] && cp ./moe /usr/local/bin/moe
-    [[ ! -e /usr/share/man/man1/moe ]] && cp ./moe.1.gz /usr/share/man/man1/moe
+    [[ ! -e /usr/local/bin/moe ]] && sudo cp ./moe /usr/local/bin/moe
+    [[ ! -e /usr/share/man/man1/moe ]] && sudo cp ./moe.1.gz /usr/share/man/man1/moe
     [[ ! -e $HOME/.config/moe ]] && mkdir $HOME/.config/moe
     [[ ! -e $HOME/Pictures/moe ]] && mkdir $HOME/Pictures/moe
 fi
 
 if [[ $1 == "update" ]]; then
-    cp ./moe /usr/local/bin/moe
-    cp ./moe.1.gz /usr/share/man/man1/moe
+    sudo cp ./moe /usr/local/bin/moe
+    sudo cp ./moe.1.gz /usr/share/man/man1/moe
     mkdir $HOME/.config/moe
     mkdir $HOME/Pictures/moe
 fi
